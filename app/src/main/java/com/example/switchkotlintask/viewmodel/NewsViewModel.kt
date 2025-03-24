@@ -9,26 +9,29 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
+
 class NewsViewModel(private val repository: NewsRepository) {
 
     private val _newsState = MutableStateFlow<NewsState>(NewsState.Error(""))
     val newsState: StateFlow<NewsState> = _newsState
 
-    private val _cachedArticles = mutableListOf<NewsArticle>()
+    val _cachedArticles = mutableListOf<NewsArticle>()
 
     fun fetchTopHeadlines() {
+        if(!NetworkHandler.isNetworkConnected) {
+            _newsState.value = NewsState.Error("No internet connection\nPlease connect to the internet and try again")
+            return
+        }
         if (_newsState.value is NewsState.Loading) return
-
         _newsState.value = NewsState.Loading
-
         CoroutineScope(Dispatchers.IO).launch {
-            repository.getTopHeadlines { result ->
-                result.onSuccess { articles ->
+            repository.getTopHeadlines() { result ->
+                result.onSuccess { response ->
                     _cachedArticles.clear()
-                    _cachedArticles.addAll(articles)
-                    _newsState.value = NewsState.Success(articles)
+                    _cachedArticles.addAll(response.articles)
+                    _newsState.value = NewsState.Success(response.articles)
                 }.onFailure { error ->
-                    _newsState.value = NewsState.Error(error.localizedMessage ?: "")
+                    _newsState.value = NewsState.Error(error.message ?: "Unknown error")
                 }
             }
         }
@@ -45,6 +48,7 @@ class NewsViewModel(private val repository: NewsRepository) {
         }
     }
 }
+
 
 sealed class NewsState {
     data object Loading : NewsState()
