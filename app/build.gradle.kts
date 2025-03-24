@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     id("kotlin-kapt")
+    id ("com.google.devtools.ksp") version "1.6.21-1.0.6"
+
 }
 
 android {
@@ -99,4 +101,11 @@ dependencies {
     // koin for dependency injection
     implementation("io.insert-koin:koin-android:3.4.0")
     implementation("io.insert-koin:koin-androidx-compose:3.4.0")
+
+    // roomedb
+    implementation( "androidx.room:room-runtime:2.6.1")
+    implementation( "androidx.room:room-ktx:2.6.1")
+    annotationProcessor ("androidx.room:room-compiler:2.6.1")
+    ksp ("androidx.room:room-compiler:2.6.1")
+
 }
